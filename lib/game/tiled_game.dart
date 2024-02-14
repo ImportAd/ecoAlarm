@@ -1,12 +1,17 @@
 import 'package:ecoalarm/game/tile_info.dart';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flame_noise/flame_noise.dart';
+import 'dart:developer';
 import 'dart:math' as math;
 
+// ToDo: добавить ScrollDetector, MouseMovementDetector
+// https://docs.flame-engine.org/1.0.0/gesture-input.html
 class TiledGame extends FlameGame with ScaleDetector, TapDetector {
   late TiledComponent mapComponent;
 
@@ -23,7 +28,26 @@ class TiledGame extends FlameGame with ScaleDetector, TapDetector {
     mapComponent = await TiledComponent.load(
       'testMap.tmx',
       Vector2(73, 55), //31, 27
+      ignoreFlip: false,
     );
+
+    log('ширина карты ${mapComponent.tileMap.map.width}');
+    log('высота карты  ${mapComponent.tileMap.map.height}');
+
+    // final stack = mapComponent.tileMap.tileStack(4, 0, named: {'floor_under'});
+    // stack.add(
+    //   SequenceEffect(
+    //     [
+    //       MoveEffect.by(
+    //         Vector2(5, 0),
+    //         NoiseEffectController(duration: 1),
+    //       ),
+    //       MoveEffect.by(Vector2.zero(), LinearEffectController(2)),
+    //     ],
+    //     repeatCount: 3,
+    //   )..onComplete = () => stack.removeFromParent(),
+    // );
+    // mapComponent.add(stack);
     world.add(mapComponent);
   }
 
@@ -115,9 +139,18 @@ class TiledGame extends FlameGame with ScaleDetector, TapDetector {
       sprite: await Sprite.load('circle.png'),
     )
       ..anchor = Anchor.center
-      ..position = Vector2(tappedCel.center.dx, tappedCel.center.dy)
+      // так как алгоритм центрирования _getTappedCell перестал нормально работать,
+      // по y центрированое значение, а по x просто туда куда нажал
+      ..position =
+          Vector2(tappedCel.clickPoint[0].toDouble(), tappedCel.center.dy)
+      // ..position = Vector2(tappedCel.center.dx, tappedCel.center.dy)
       ..priority = 1;
     mapComponent.add(spriteComponent);
+
+    log('нажатие на клетку ${tappedCel.clickPoint}'); // возврашает реальные координаты клика
+    log('по х: ${tappedCel.center.dx}');
+    // log('по y: ${tappedCel.center.dy}');
+    log('размеры карты: ${tappedCel.tileSize}');
 
     // estimateCallTime<TileInfo>(
     //   () {
@@ -126,13 +159,27 @@ class TiledGame extends FlameGame with ScaleDetector, TapDetector {
     // );
   }
 
+  // НЕ КРИТИЧНАЯ ОШИБКА
+  // алгоритм не верен
+  // он не проходит по всей карте, вручную элемент можно поставить куда угодно
+  // но он дает поставить не дальше по х: 5256.0
+  // при этом он точно считывает нажатие в переменную clickOnMapPoint
+  // пердпологаю это потому, что я изменил Vector2 с 31, 27 на 73, 55 в строчке 30
+  // для улучшения отображения карты
+  //
+  //
   TileInfo _getTappedCell(TapUpInfo info) {
     final clickOnMapPoint = camera.globalToLocal(info.eventPosition.global);
+    log('clickOnMapPoint: $clickOnMapPoint');
 
     final rows = mapComponent.tileMap.map.width;
+    log('rows: $rows');
     final cols = mapComponent.tileMap.map.height;
+    log('cols: $cols');
 
     final tileSize = mapComponent.tileMap.destTileSize;
+    log('tileSize: $tileSize');
+    log('tileSize.x: ${tileSize.x}');
 
     var targetRow = 0;
     var targetCol = 0;
@@ -155,10 +202,18 @@ class TiledGame extends FlameGame with ScaleDetector, TapDetector {
           targetRow = row;
           targetCol = col;
           targetCenter = Offset(xCenter, yCenter);
+          // log('xCenter: $xCenter');
+          // log('yCenter: $yCenter');
+          // log('targetCenter: $targetCenter');
         }
       }
     }
-
-    return TileInfo(center: targetCenter, row: targetRow, col: targetCol);
+    log('targetCenter: $targetCenter');
+    return TileInfo(
+        center: targetCenter,
+        row: targetRow,
+        col: targetCol,
+        clickPoint: clickOnMapPoint,
+        tileSize: tileSize);
   }
 }
