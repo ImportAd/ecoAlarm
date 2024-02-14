@@ -15,8 +15,8 @@ import 'dart:math' as math;
 class TiledGame extends FlameGame with ScaleDetector, TapDetector {
   late TiledComponent mapComponent;
 
-  static const double _minZoom = 0.1;
-  static const double _maxZoom = 2.5;
+  static const double _minZoom = 0.2;
+  static const double _maxZoom = 2.5; // 2.5
   double _startZoom = _minZoom;
 
   @override
@@ -27,7 +27,8 @@ class TiledGame extends FlameGame with ScaleDetector, TapDetector {
 
     mapComponent = await TiledComponent.load(
       'testMap.tmx',
-      Vector2(73, 55), //31, 27
+      // Vector2(73, 55), //31, 27
+      Vector2(31, 27), //154, 72 // 280, 200
       ignoreFlip: false,
     );
 
