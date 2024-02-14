@@ -147,7 +147,7 @@ class TiledGame extends FlameGame with ScaleDetector, TapDetector {
       ..priority = 1;
     mapComponent.add(spriteComponent);
 
-    log('нажатие на клетку ${tappedCel.clickPoint}'); // возврашает реальные координаты клика
+    log('нажатие на клетку ${tappedCel.clickPoint}'); // возвращает реальные координаты клика
     log('по х: ${tappedCel.center.dx}');
     // log('по y: ${tappedCel.center.dy}');
     log('размеры карты: ${tappedCel.tileSize}');
@@ -164,7 +164,7 @@ class TiledGame extends FlameGame with ScaleDetector, TapDetector {
   // он не проходит по всей карте, вручную элемент можно поставить куда угодно
   // но он дает поставить не дальше по х: 5256.0
   // при этом он точно считывает нажатие в переменную clickOnMapPoint
-  // пердпологаю это потому, что я изменил Vector2 с 31, 27 на 73, 55 в строчке 30
+  // предполагаю это потому, что я изменил Vector2 с 31, 27 на 73, 55 в строчке 30
   // для улучшения отображения карты
   //
   //
